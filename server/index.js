@@ -13,14 +13,31 @@ import writingRouter from './routes/writing.js';
 
 const app = express();
 
-// Normalize CLIENT_URL to remove trailing slash
-const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+// CORS configuration - allow localhost and any Vercel deployment
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      process.env.CLIENT_URL?.replace(/\/$/, ''),
+      // Allow all Vercel preview and production deployments
+      /https:\/\/.*\.vercel\.app$/
+    ].filter(Boolean);
 
-// Middleware
-app.use(cors({
-  origin: clientUrl,
-  credentials: true,
-}));
+    if (!origin || allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) return allowed.test(origin);
+      return allowed === origin;
+    })) {
+      callback(null, true);
+    } else {
+      console.warn('CORS blocked:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
