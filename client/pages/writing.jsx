@@ -20,6 +20,7 @@ import {
 import api from '../lib/api';
 
 const WritingSupport = () => {
+  const [sessionId, setSessionId] = useState(null);
   const [text, setText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [refinedText, setRefinedText] = useState('');
@@ -64,6 +65,36 @@ const WritingSupport = () => {
     }
   }, []);
 
+  // Auto-save draft text (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (text && sessionId) {
+        api.put(`/writing/${sessionId}`, { draftText: text })
+          .catch(err => console.error('Failed to auto-save draft:', err));
+      }
+    }, 2000); // Save after 2 seconds of inactivity
+
+    return () => clearTimeout(timer);
+  }, [text, sessionId]);
+
+  // Create initial session on mount
+  useEffect(() => {
+    const createSession = async () => {
+      try {
+        const { data } = await api.post('/writing', { 
+          title: 'New Writing Session',
+          draftText: ''
+        });
+        setSessionId(data.id);
+      } catch (err) {
+        console.error('Failed to create writing session:', err);
+      }
+    };
+    if (!sessionId) {
+      createSession();
+    }
+  }, []);
+
   const toggleListening = () => {
     setError(null);
     if (isListening) {
@@ -85,6 +116,13 @@ const WritingSupport = () => {
     try {
       const { data } = await api.post('/writing/refine', { text, mode });
       setRefinedText(data.refinedText);
+      
+      // Save refined text if session exists
+      if (sessionId) {
+        await api.post(`/writing/${sessionId}/save-refined`, { 
+          refinedText: data.refinedText 
+        });
+      }
     } catch (err) {
       console.error('Failed to refine text');
     } finally {
@@ -110,8 +148,21 @@ const WritingSupport = () => {
             <p className="text-slate-500 font-medium">Turn messy thoughts into clear communication.</p>
           </div>
           <div className="flex items-center gap-3">
-             <button 
-               onClick={() => { setText(''); setRefinedText(''); }}
+          <button 
+               onClick={async () => { 
+                 setText(''); 
+                 setRefinedText('');
+                 // Create new writing session
+                 try {
+                   const { data } = await api.post('/writing', { 
+                     title: 'New Writing Session',
+                     draftText: ''
+                   });
+                   setSessionId(data.id);
+                 } catch (err) {
+                   console.error('Failed to create writing session:', err);
+                 }
+               }}
                className="p-3 text-slate-400 hover:text-red-500 rounded-2xl transition-colors"
              >
                <RotateCcw className="w-5 h-5" />

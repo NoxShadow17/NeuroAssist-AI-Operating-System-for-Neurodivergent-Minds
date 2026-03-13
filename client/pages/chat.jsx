@@ -17,16 +17,32 @@ import { useAuthStore } from '../store/useAuthStore';
 
 const AIChat = () => {
   const { profile } = useAuthStore();
+  const [currentConversationId, setCurrentConversationId] = useState(null);
   const [messages, setMessages] = useState([
     { 
       role: 'assistant', 
       content: "Hi there! I'm your NeuroAssist companion. I'm here to help you break down tasks, plan your day, or just offer some support. How are you feeling right now?" 
     }
   ]);
+  const [conversations, setConversations] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef(null);
 
+  // Load conversations on mount
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const { data } = await api.get('/chat/conversations');
+        setConversations(data || []);
+      } catch (err) {
+        console.error('Failed to load conversations:', err);
+      }
+    };
+    loadConversations();
+  }, []);
+
+  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -43,9 +59,35 @@ const AIChat = () => {
     setIsTyping(true);
 
     try {
+      let convId = currentConversationId;
+      
+      // Create new conversation if needed
+      if (!convId) {
+        const { data: newConv } = await api.post('/chat/conversations', { 
+          title: input.substring(0, 50) 
+        });
+        convId = newConv.id;
+        setCurrentConversationId(convId);
+        setConversations(prev => [newConv, ...prev]);
+      }
+
+      // Save user message to database
+      await api.post(`/chat/conversations/${convId}/messages`, { 
+        role: 'user', 
+        content: input 
+      });
+
+      // Get AI response
       const { data } = await api.post('/companion/chat', { 
         messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content }))
       });
+      
+      // Save assistant message to database
+      await api.post(`/chat/conversations/${convId}/messages`, { 
+        role: 'assistant', 
+        content: data.message 
+      });
+
       setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
     } catch (err) {
       console.error('Chat error:', err);
@@ -72,9 +114,12 @@ const AIChat = () => {
             </div>
           </div>
           <button 
-             onClick={() => setMessages([messages[0]])}
+             onClick={() => {
+               setCurrentConversationId(null);
+               setMessages([messages[0]]);
+             }}
              className="p-3 text-slate-400 hover:text-indigo-600 transition-colors"
-             title="Restart Conversation"
+             title="Start New Conversation"
           >
             <RefreshCw className="w-5 h-5" />
           </button>
