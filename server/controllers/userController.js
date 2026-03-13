@@ -98,12 +98,23 @@ export const getDashboardStats = async (req, res) => {
     const { data: user } = await req.supabase.from('users').select('*').eq('id', userId).single();
     const { count: taskCount } = await req.supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('completed', false);
     const { data: recentSessions } = await req.supabase.from('focus_sessions').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(5);
+    
+    // Calculate total focus time for today
+    const today = new Date().toISOString().split('T')[0];
+    const { data: todaysSessions } = await req.supabase
+      .from('focus_sessions')
+      .select('duration')
+      .eq('user_id', userId)
+      .gte('created_at', `${today}T00:00:00`);
+    
+    const totalFocusMinutes = (todaysSessions || []).reduce((sum, s) => sum + (s.duration || 0), 0);
 
     res.json({
       user,
       pendingTasks: taskCount || 0,
       recentSessions: recentSessions || [],
-      xpToNextLevel: gamificationService.getXpToNextLevel(user.xp)
+      xpToNextLevel: gamificationService.getXpToNextLevel(user.xp),
+      totalFocusMinutes: totalFocusMinutes
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

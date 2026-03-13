@@ -98,7 +98,10 @@ const Dashboard = () => {
               <Clock className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-bold dark:text-white">Focus Time</h3>
-            <p className="text-4xl font-black mt-2 dark:text-white">02:45 <span className="text-base font-medium text-slate-500">hrs</span></p>
+            <p className="text-4xl font-black mt-2 dark:text-white">
+              {Math.floor(stats.totalFocusMinutes / 60)}:{String(stats.totalFocusMinutes % 60).padStart(2, '0')} 
+              <span className="text-base font-medium text-slate-500">hrs</span>
+            </p>
             <p className="text-slate-500 text-sm mt-2">Today's total session time</p>
           </div>
         </div>

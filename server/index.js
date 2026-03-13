@@ -10,6 +10,8 @@ import focusSessionsRouter from './routes/focusSessions.js';
 import userRouter from './routes/user.js';
 import companionRouter from './routes/companion.js';
 import writingRouter from './routes/writing.js';
+import chatRouter from './routes/chat.js';
+import readingRouter from './routes/reading.js';
 
 const app = express();
 
@@ -57,6 +59,9 @@ app.use('/api/brain-dump', brainDumpRouter);
 app.use('/api/focus-sessions', focusSessionsRouter);
 app.use('/api/companion', companionRouter);
 app.use('/api/writing', writingRouter);
+app.use('/api/chat', chatRouter);
+app.use('/api/reading', readingRouter);
+// Note: focusRooms route removed - feature was deprecated and removed from client
 
 // Global error handler
 app.use((err, req, res, next) => {
