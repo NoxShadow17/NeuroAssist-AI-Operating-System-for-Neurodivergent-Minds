@@ -13,9 +13,12 @@ import writingRouter from './routes/writing.js';
 
 const app = express();
 
+// Normalize CLIENT_URL to remove trailing slash
+const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: clientUrl,
   credentials: true,
 }));
 app.use(express.json());
