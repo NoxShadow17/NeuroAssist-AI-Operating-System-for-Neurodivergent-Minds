@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/opendyslexic@1.0.3/dist/OpenDyslexic-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #6366f1;
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #f1f5f9;
+  --primary: #818cf8;
+}
+
+/* Visual Themes */
+[data-theme='calm-blue'] {
+  --background: #f0f7ff;
+  --foreground: #1e3a8a;
+  --primary: #3b82f6;
+}
+
+[data-theme='indigo-night'] {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --primary: #6366f1;
+}
+
+[data-theme='forest-green'] {
+  --background: #f0fdf4;
+  --foreground: #14532d;
+  --primary: #22c55e;
+}
+
+[data-theme='sunset'] {
+  --background: #fffbf7; /* Softer cream */
+  --foreground: #431407; /* Deep mahogany */
+  --primary: #f97316; /* Vibrant orange */
+}
+
+/* Dark Mode Overrides */
+.dark[data-theme='calm-blue'] { --background: #082f49; --foreground: #e0f2fe; }
+.dark[data-theme='forest-green'] { --background: #022c22; --foreground: #ecfdf5; }
+.dark[data-theme='sunset'] { --background: #2a0e05; --foreground: #ffedd5; }
+
+[data-theme='overwhelm'] {
+  --background: #fdf4ff;
+  --foreground: #4a044e;
+  --primary: #d946ef;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  transition: background-color 0.4s, color 0.4s;
+  overflow-x: hidden;
+}
+
+.dyslexic-font {
+  font-family: 'OpenDyslexic', sans-serif !important;
+  letter-spacing: 0.1em;
+  word-spacing: 0.2em;
+  line-height: 1.8;
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
